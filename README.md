@@ -64,7 +64,9 @@ Paso 4:
 - Modificar codigo para que se descargen la ssiguientes partes cuando lleguemos a la X (cambiar lo que teniamos por 3/4 partes por una variable que iremos definiendo a saber si hacer que descargue cuando vamos 1/4, 2/4, etc tendremos que hacer pruebas de rendimiento) parte del video
 
 ### Objetivos de la tarea:
+
 Por tanto la tarea consta de varias partes:
+
 1 Poder ver el video en el navegador usando las partes que nos hayamos descargado junto al indice.
 2 Hacer un reproductor de video que permita ver el video en el navegador con los botones de play, pause, stop, etc. Mirar si hay alguna libreria de next para ello.
 3 Poder descargar las partes del video a traves de la api
