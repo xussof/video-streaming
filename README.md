@@ -36,7 +36,7 @@ Para obtener el indice del video:
 http://localhost:5000/2--api-documentation/private-apis/streaming/watch-video/
 
 Para descargarse las partes del video:
-
+http://localhost:5000/2--api-documentation/private-apis/streaming/watch-hls-segment/
 
 
 ### Información sobre el video:
