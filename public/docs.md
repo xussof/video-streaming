@@ -13,9 +13,13 @@ Al hacer esto, he conseguido reproducir el archivo indice del video .m3u8.
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 30,
+              maxBufferLength: 7.5,
               liveSyncDurationCount: 3,
               maxMaxBufferLength: 600,
+              backBufferLength: 30,
+              maxBufferHole: 0.1,
+              maxStarvationDelay: 4,
+              maxLoadingDelay, 
             },
           },
         }}
