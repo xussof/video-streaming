@@ -21,17 +21,16 @@ export const VideoPlayer = () => {
         controls={true}
         width={640}
         height={360}
-        playsinline={false}
         playing={playing}
         config={{
           file: {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 7.5,
+              maxBufferLength: 30,
               liveSyncDurationCount: 3,
-              maxMaxBufferLength: 600,
-              backBufferLength: 30,
+              maxMaxBufferLength: 10,
+              backBufferLength: 10,
               maxBufferHole: 0.1,
               maxStarvationDelay: 4,
               maxLoadingDelay: 0.5,
