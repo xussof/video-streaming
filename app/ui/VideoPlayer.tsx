@@ -3,7 +3,7 @@ import { useState } from "react";
 import ReactPlayer from "react-player";
 
 export const VideoPlayer = () => {
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const videoUrl = "/video/vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps.m3u8";
 
   const handleError = (error: unknown) => {
