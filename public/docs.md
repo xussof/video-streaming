@@ -1,13 +1,13 @@
-1. Primer paso: Reproducir el indice del video (video completo).
+### 1. Primer paso: Reproducir el indice del video (video completo).
 
-He tenido que crear la carpeta public y pasar allí los
+He creado la carpeta public y pasado allí los
 archivos que estaban en static, ya que sino, no podía leerlos.
 
 Al hacer esto, he conseguido reproducir el archivo indice del video .m3u8.
 
 **He utilizado la libreria react-player configurada para HLS**
 
-``
+```
  url={videoUrl}
         controls={true}
         width={640}
@@ -28,56 +28,58 @@ Al hacer esto, he conseguido reproducir el archivo indice del video .m3u8.
             },
           },
         }}
-``
+```
 
-- url: Especifica la URL de origen del video.
+- **url**: Especifica la URL de origen del video.
 
-- controls: Cuando se establece en true, agrega controles de video al reproductor.
+- **controls**: Cuando se establece en true, agrega controles de video al reproductor.
 
-- width y height: Establecen las dimensiones del reproductor de video.
+- **width y height**: Establecen las dimensiones del reproductor de video.
 
-- playing: Una propiedad booleana que determina si el video debe comenzar a reproducirse inmediatamente.
+- **playing**: Una propiedad booleana que determina si el video debe comenzar a reproducirse inmediatamente.
 
-- config: Un objeto que contiene opciones de configuración para el reproductor.
+- **config**: Un objeto que contiene opciones de configuración para el reproductor.
 
-- onError: Una función de llamada-back que se ejecutará si hay un error al reproducir el video.
+- **onError**: Una función de llamada-back que se ejecutará si hay un error al reproducir el video.
 
 **Opciones de config**:
 
-- file.hlsOptions: Estas son opciones específicas para videos HLS (HTTP Live Streaming).
+- **file.hlsOptions**: Estas son opciones específicas para videos HLS (HTTP Live Streaming).
 
-- autoStartLoad: Si se establece en true, comienza automáticamente a cargar el video.
+- **autoStartLoad**: Si se establece en true, comienza automáticamente a cargar el video.
 
-- startPosition: Establece la posición inicial del video en segundos. -1 significa que comenzará desde el principio.
+- **startPosition**: Establece la posición inicial del video en segundos. -1 significa que comenzará desde el principio.
 
 - maxBufferLength: Longitud máxima del buffer en segundos.
 
-- liveSyncDurationCount: Número de segundos para sincronizarse con el flujo en vivo antes de empezar la reproducción.
+- **liveSyncDurationCount**: Número de segundos para sincronizarse con el flujo en vivo antes de empezar la reproducción.
 
-- maxMaxBufferLength: Longitud máxima permitida total del buffer en segundos.
+- **maxMaxBufferLength**: Longitud máxima permitida total del buffer en segundos.
 
-- backBufferLength: Longitud del buffer de fondo en segundos.
+- **backBufferLength**: Longitud del buffer de fondo en segundos.
 
-p. maxBufferHole: Hueso de buffer máximo permitido en segundos.
+- **maxBufferHole**: Hueso de buffer máximo permitido en segundos.
 
-- maxStarvationDelay: Retraso máximo entre eventos de hambre en milisegundos.
+- **maxStarvationDelay**: Retraso máximo entre eventos de hambre en milisegundos.
 
-- maxLoadingDelay: Retraso máximo permitido de carga en segundos.
+- **maxLoadingDelay**: Retraso máximo permitido de carga en segundos.
 
+
+**Apuntes buffer**: 
 - **(Read Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que están siendo procesados y reproducidos.
 Tiene un tamaño limitado por `maxBufferLength`.
 - **(Write Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que aún no han sido reproducidos.
 Tiene un tamaño limitado por `maxMaxBufferLength`.
-- - **(Back Buffer)**:
+- **(Back Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que ya han sido reproducidos pero aún no han sido eliminados.
 Tiene un tamaño limitado por `backBufferLength`.
-**(Buffer Hole)**:
+- **(Buffer Hole)**:
 Es el espacio entre el final del buffer de lectura y el inicio del buffer de escritura.
 Tiene un valor máximo de `maxBufferHole`.
 
-**Funcionamiento esperado**:
+### **Funcionamiento esperado**:
 
 - Carga automática: El video comienza a cargar automáticamente cuando se abre la página.
 - Buffering: El reproductor mantiene hasta 30 segundos de video en el buffer de lectura.
@@ -88,7 +90,7 @@ Tiene un valor máximo de `maxBufferHole`.
 
 - La otra opción era crear un middleware para servir los archivos estaticos desde otra ubicación, lo cual no tiene sentido ya que vendran de la API.
 
-2. Siguiente paso: configurar las opciones de hls y conseguir servir el video cada 10 segundos.
+### 2. Siguiente paso: configurar las opciones de hls y conseguir servir el video cada 10 segundos.
 
 Añado logica para el boton de play/pause, añado prop playing al reproductor. Con este botón se inicia el video y se pausa, lo cual cancela la descarga de siguientes partes. Esto viene dado de las props de reac-player. *Consultar que otros botones necesitamos*
 El video se puede reproducir en pantalla completa y en ventana popup.
