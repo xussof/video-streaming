@@ -30,54 +30,54 @@ Al hacer esto, he conseguido reproducir el archivo indice del video .m3u8.
         }}
 ``
 
-a. url: Especifica la URL de origen del video.
+- url: Especifica la URL de origen del video.
 
-b. controls: Cuando se establece en true, agrega controles de video al reproductor.
+- controls: Cuando se establece en true, agrega controles de video al reproductor.
 
-c. width y height: Establecen las dimensiones del reproductor de video.
+- width y height: Establecen las dimensiones del reproductor de video.
 
-d. playing: Una propiedad booleana que determina si el video debe comenzar a reproducirse inmediatamente.
+- playing: Una propiedad booleana que determina si el video debe comenzar a reproducirse inmediatamente.
 
-e. config: Un objeto que contiene opciones de configuración para el reproductor.
+- config: Un objeto que contiene opciones de configuración para el reproductor.
 
-f. onError: Una función de llamada-back que se ejecutará si hay un error al reproducir el video.
+- onError: Una función de llamada-back que se ejecutará si hay un error al reproducir el video.
 
 **Opciones de config**:
 
-g. file.hlsOptions: Estas son opciones específicas para videos HLS (HTTP Live Streaming).
+- file.hlsOptions: Estas son opciones específicas para videos HLS (HTTP Live Streaming).
 
-h. autoStartLoad: Si se establece en true, comienza automáticamente a cargar el video.
+- autoStartLoad: Si se establece en true, comienza automáticamente a cargar el video.
 
-i. startPosition: Establece la posición inicial del video en segundos. -1 significa que comenzará desde el principio.
+- startPosition: Establece la posición inicial del video en segundos. -1 significa que comenzará desde el principio.
 
-j. maxBufferLength: Longitud máxima del buffer en segundos.
+- maxBufferLength: Longitud máxima del buffer en segundos.
 
-k. liveSyncDurationCount: Número de segundos para sincronizarse con el flujo en vivo antes de empezar la reproducción.
+- liveSyncDurationCount: Número de segundos para sincronizarse con el flujo en vivo antes de empezar la reproducción.
 
-l. maxMaxBufferLength: Longitud máxima permitida total del buffer en segundos.
+- maxMaxBufferLength: Longitud máxima permitida total del buffer en segundos.
 
-m. backBufferLength: Longitud del buffer de fondo en segundos.
+- backBufferLength: Longitud del buffer de fondo en segundos.
 
 p. maxBufferHole: Hueso de buffer máximo permitido en segundos.
 
-n. maxStarvationDelay: Retraso máximo entre eventos de hambre en milisegundos.
+- maxStarvationDelay: Retraso máximo entre eventos de hambre en milisegundos.
 
-o. maxLoadingDelay: Retraso máximo permitido de carga en segundos.
+- maxLoadingDelay: Retraso máximo permitido de carga en segundos.
 
-**(Read Buffer)**:
+- **(Read Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que están siendo procesados y reproducidos.
 Tiene un tamaño limitado por `maxBufferLength`.
-**(Write Buffer)**:
+- **(Write Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que aún no han sido reproducidos.
 Tiene un tamaño limitado por `maxMaxBufferLength`.
-**(Back Buffer)**:
+- - **(Back Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que ya han sido reproducidos pero aún no han sido eliminados.
 Tiene un tamaño limitado por `backBufferLength`.
 **(Buffer Hole)**:
 Es el espacio entre el final del buffer de lectura y el inicio del buffer de escritura.
 Tiene un valor máximo de `maxBufferHole`.
 
-Funcionamiento esperado:
+**Funcionamiento esperado**:
 
 - Carga automática: El video comienza a cargar automáticamente cuando se abre la página.
 - Buffering: El reproductor mantiene hasta 30 segundos de video en el buffer de lectura.
