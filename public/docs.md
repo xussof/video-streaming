@@ -38,6 +38,8 @@ Al hacer esto, he conseguido reproducir el archivo indice del video .m3u8.
 
 - **playing**: Una propiedad booleana que determina si el video debe comenzar a reproducirse inmediatamente.
 
+- **light**: Imagen que aparece antes de reproducirse el video (miatura de video). Con esta propiedad, el boton START queda obsololeto ya que viene añadido en la imagen, cuando se le da al boton en el centro de la imagen, aparece el video y la primera carga, con el boton play pause se inicia o pausa el video, lo que tambien inicia o pausa segun el caso, la carga de partes. De este boton extra tambien se podría prescindir ya que viene con los controles del reproductor, o eliminar los controles del reproductor y tener los propios.
+
 - **config**: Un objeto que contiene opciones de configuración para el reproductor.
 
 - **onError**: Una función de llamada-back que se ejecutará si hay un error al reproducir el video.

@@ -5,6 +5,7 @@ import ReactPlayer from "react-player";
 export const VideoPlayer = () => {
   const [playing, setPlaying] = useState(false);
   const videoUrl = "/video/vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps.m3u8";
+  const videoImage = "/thumbnails.jpg";
 
   const handleError = (error: unknown) => {
     console.error("Error playing video:", error);
@@ -22,6 +23,7 @@ export const VideoPlayer = () => {
         width={640}
         height={360}
         playing={playing}
+        light={videoImage}
         config={{
           file: {
             hlsOptions: {
