@@ -29,13 +29,25 @@ export const VideoPlayer = () => {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 30,
-              liveSyncDurationCount: 3,
+              maxBufferLength: 15,
+              liveSyncDurationCount: 1,
               maxMaxBufferLength: 10,
               backBufferLength: 10,
               maxBufferHole: 0.1,
               maxStarvationDelay: 4,
               maxLoadingDelay: 0.5,
+              fpsDroppedMonitoringPeriod: 2000, // Monitorea cada 2 segundos
+              fpsDroppedMonitoringThreshold: 0.2, // Considera que los FPS han caído si bajan un 20%
+              abrController: {
+                enabled: true,
+                bandwidth: 5,
+                minRebuffer: 0.5,
+                maxRebuffer: 2,
+                minBuffer: 0.5,
+                maxBuffer: 2,
+                minBufferTime: 0.5,
+                maxBufferTime: 2,
+              },
             },
           },
         }}
