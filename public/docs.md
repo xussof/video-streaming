@@ -1,4 +1,4 @@
-### 1. Primer paso: Reproducir el indice del video (video completo).
+## 1. Primer paso: Reproducir el indice del video (video completo).
 
 He creado la carpeta public y pasado allí los
 archivos que estaban en static, ya que sino, no podía leerlos.
@@ -44,29 +44,6 @@ Al hacer esto, he conseguido reproducir el archivo indice del video .m3u8.
 
 - **onError**: Una función de llamada-back que se ejecutará si hay un error al reproducir el video.
 
-**Opciones de config**:
-
-- **file.hlsOptions**: Estas son opciones específicas para videos HLS (HTTP Live Streaming).
-
-- **autoStartLoad**: Si se establece en true, comienza automáticamente a cargar el video.
-
-- **startPosition**: Establece la posición inicial del video en segundos. -1 significa que comenzará desde el principio.
-
-- maxBufferLength: Longitud máxima del buffer en segundos.
-
-- **liveSyncDurationCount**: Número de segundos para sincronizarse con el flujo en vivo antes de empezar la reproducción.
-
-- **maxMaxBufferLength**: Longitud máxima permitida total del buffer en segundos.
-
-- **backBufferLength**: Longitud del buffer de fondo en segundos.
-
-- **maxBufferHole**: Hueso de buffer máximo permitido en segundos.
-
-- **maxStarvationDelay**: Retraso máximo entre eventos de hambre en milisegundos.
-
-- **maxLoadingDelay**: Retraso máximo permitido de carga en segundos.
-
-
 **Apuntes buffer**: 
 - **(Read Buffer)**:
 Es el área de memoria donde se almacenan los datos del video que están siendo procesados y reproducidos.
@@ -92,7 +69,7 @@ Tiene un valor máximo de `maxBufferHole`.
 
 - La otra opción era crear un middleware para servir los archivos estaticos desde otra ubicación, lo cual no tiene sentido ya que vendran de la API.
 
-### 2. Siguiente paso: configurar las opciones de hls y conseguir servir el video cada 10 segundos.
+## 2. Siguiente paso: configurar las opciones de hls y conseguir servir el video cada 10 segundos.
 
 Añado logica para el boton de play/pause, añado prop playing al reproductor. Con este botón se inicia el video y se pausa, lo cual cancela la descarga de siguientes partes. Esto viene dado de las props de reac-player. *Consultar que otros botones necesitamos*
 El video se puede reproducir en pantalla completa y en ventana popup.
@@ -162,3 +139,51 @@ export const VideoPlayer = () => {
   );
 };
 ```
+
+### HLS CONFIG
+
+#### autoStartLoad: true
+Comienza automáticamente a cargar el video cuando se inicializa el reproductor.
+
+#### startPosition: -1
+Inicia la reproducción desde el principio del video (-1 significa posición inicial).
+
+#### maxBufferLength: 15
+Establece un máximo de 15 segundos de video en búfer. Esto controla cuánto tiempo de video se carga por adelantado.
+
+#### liveSyncDurationCount: 1
+Carga solo el primer segmento inicialmente, lo que permite un inicio rápido del video.
+
+#### maxMaxBufferLength: 10
+Limita el búfer máximo a 10 segundos para evitar cargar demasiado adelante.
+
+#### backBufferLength: 10
+Permite un búfer posterior de hasta 10 segundos. Esto ayuda a mantener la reproducción suave.
+
+#### maxBufferHole: 0.1
+Establece un hueco máximo de 0.1 segundos entre fragmentos. Menores valores dan una reproducción más fluida.
+
+#### maxStarvationDelay: 4
+Si no se pueden cargar nuevos datos durante 4 segundos, se considera que hay un problema.
+
+#### maxLoadingDelay: 0.5
+Si un fragmento tarda más de 0.5 segundos en cargar, se considera que hay un problema.
+
+#### fpsDroppedMonitoringPeriod: 2000
+Monitorea los frames por segundo cada 2 segundos (2000 milisegundos).
+
+#### fpsDroppedMonitoringThreshold: 0.2
+Considera que los FPS han caído si bajan un 20% en el período de monitoreo.
+
+#### abrController
+Este objeto configura el controlador de bitrate adaptable (ABR):
+
+- enabled: true - Activa el controlador ABR.
+- bandwidth: 5 - Establece el ancho de banda objetivo en 5 Mbps.
+- minRebuffer: 0.5 - Mínimo de 0.5 segundos de re-búfer.
+- maxRebuffer: 2 - Máximo de 2 segundos de re-búfer.
+- minBuffer: 0.5 - Mínimo de 0.5 segundos de búfer.
+- maxBuffer: 2 - Máximo de 2 segundos de búfer.
+- minBufferTime: 0.5 - Tiempo mínimo de búfer en segundos.
+- maxBufferTime: 2 - Tiempo máximo de búfer en segundos.
+
