@@ -6,7 +6,7 @@ export const getVideoIndex = async () => {
 
   if (!apiHost || !apiKey || !apiUrl || !userKey) {
     throw new Error(
-      "API Host, Key or URL is missing. Please check your environment variables."
+      "API Host, Key, userKey or URL is missing. Please check your environment variables."
     );
   }
   try {
@@ -29,8 +29,11 @@ export const getVideoIndex = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.text();
-    console.log(data);
-    return data;
+    const baseUrl = process.env.NEXT_PUBLIC_SIV_URL;
+    const modifiedIndex = data.replace(/(vid-.+\.ts)/g, `${baseUrl}$1`);
+    console.log("Indice m3u8 de getVideoIndex", data);
+    console.log("Indice modificado", modifiedIndex);
+    return modifiedIndex;
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error fetching video index:", error.message);

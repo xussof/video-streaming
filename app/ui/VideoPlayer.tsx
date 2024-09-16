@@ -4,7 +4,7 @@ import ReactPlayer from "react-player";
 import { getVideoIndex } from "../api/getVideoIndex";
 
 export const VideoPlayer = () => {
-  const [videoIndex, setVideoIndex] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,22 +14,33 @@ export const VideoPlayer = () => {
   };
 
   useEffect(() => {
-    const isMounted = true;
     const loadVideo = async () => {
       try {
-        const index = await getVideoIndex();
-        if (isMounted) {
-          setVideoIndex(index);
+        const indexContent = await getVideoIndex();
+        if (typeof indexContent === "string") {
+          // Parsea el contenido del índice M3U8
+          const segments = indexContent
+            .split("\n")
+            .filter((line) => line.startsWith("#EXT-X-"));
+
+          // Crea un array con todas las URLs de los segmentos
+          const urls = segments.map((segment) => {
+            const [, , , path] = segment.split(" ");
+            return `${process.env.NEXT_PUBLIC_SIV_URL}${path}`;
+          });
+
+          // Crea un blob con todos los segmentos
+          const blob = new Blob(urls, {
+            type: "application/vnd.apple.mpegurl",
+          });
+          const url = window.URL.createObjectURL(blob);
+          setVideoUrl(url);
         }
       } catch (err) {
-        if (isMounted) {
-          console.error("Error fetching video index:", err);
-          setError("An error occurred while fetching the video index.");
-        }
+        console.error("Error fetching video index:", err);
+        setError("An error occurred while fetching the video index.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
     loadVideo();
@@ -43,14 +54,14 @@ export const VideoPlayer = () => {
     return <div>{error}</div>;
   }
 
-  if (!videoIndex) {
+  if (!videoUrl) {
     return <div>Video index not found.</div>;
   }
 
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={videoIndex}
+        url={videoUrl}
         controls={true}
         width={640}
         height={360}
@@ -60,15 +71,15 @@ export const VideoPlayer = () => {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 15,
+              maxBufferLength: 30, // Aumenta el buffer para dar más tiempo al demuxer
               liveSyncDurationCount: 1,
-              maxMaxBufferLength: 10,
-              backBufferLength: 10,
-              maxBufferHole: 0.1,
-              maxStarvationDelay: 4,
-              maxLoadingDelay: 0.5,
-              fpsDroppedMonitoringPeriod: 2000, // Monitorea cada 2 segundos
-              fpsDroppedMonitoringThreshold: 0.2, // Considera que los FPS han caído si bajan un 20%
+              maxMaxBufferLength: 30,
+              backBufferLength: 30,
+              maxBufferHole: 0.2,
+              maxStarvationDelay: 10,
+              maxLoadingDelay: 5,
+              fpsDroppedMonitoringPeriod: 5000, // Monitorea cada 5 segundos
+              fpsDroppedMonitoringThreshold: 0.3, // Considera que los FPS han caído si bajan un 30%
             },
           },
         }}
