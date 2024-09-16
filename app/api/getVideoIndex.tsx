@@ -2,8 +2,9 @@ export const getVideoIndex = async () => {
   const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
   const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
   const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-video/`;
+  const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
 
-  if (!apiHost || !apiKey || !apiUrl) {
+  if (!apiHost || !apiKey || !apiUrl || !userKey) {
     throw new Error(
       "API Host, Key or URL is missing. Please check your environment variables."
     );
@@ -17,6 +18,7 @@ export const getVideoIndex = async () => {
           "Content-Type": "application/json",
           "X-RapidAPI-Host": apiHost,
           "X-RapidAPI-Key": apiKey,
+          "user-management-key": userKey,
         },
         body: JSON.stringify({
           bucket_name: "siv-pre",

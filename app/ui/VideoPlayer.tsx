@@ -14,16 +14,22 @@ export const VideoPlayer = () => {
   };
 
   useEffect(() => {
+    const isMounted = true;
     const loadVideo = async () => {
       try {
         const index = await getVideoIndex();
-        setVideoIndex(index);
-        setLoading(false);
+        if (isMounted) {
+          setVideoIndex(index);
+        }
       } catch (err) {
-        console.error("Error fetching video index:", err);
-        setError("An error occurred while fetching the video index.");
+        if (isMounted) {
+          console.error("Error fetching video index:", err);
+          setError("An error occurred while fetching the video index.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     loadVideo();
