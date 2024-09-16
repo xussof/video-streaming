@@ -12,20 +12,20 @@ Los archivos estan almacenados en un bucket de S3 de Scaleway de la siguiente ma
 
 Dentro del directorio de cloudsolute se encuentran los directorios de los diferentes videos con los id's unicos autogenerados en el proceso de carga de los videos. Dicho id es unico y esta creado en base al checksum del video por lo que si se vuelve a subir el video sabremos si estna subiendo varias veces el mismo video.
 
-![](/static/screenshoots/1.png)
+![](/public/screenshoots/1.png)
 
 Si entramos en uno de los directorios de los videos veremos que hay dos directorios, uno llamado raw y otro video. 
 
-![](/static/screenshoots/2.png)
+![](/public/screenshoots/2.png)
 
 En raw se encuentra el video completo tal qual lo subio el usuario, sin particionar. 
 En video se encuentran las diferentes partes en las que se ha dividido el video y el archivo .m3u8 que contiene el indice de las partes del video.
 
-![](/static/screenshoots/3.png)
+![](/public/screenshoots/3.png)
 
 Dentro de parts se encuentran las diferentes partes del video con extension .ts
 
-![](/static/screenshoots/4.png)
+![](/public/screenshoots/4.png)
 
 ### Info sobre las APIS para poder ver los videos:
 
