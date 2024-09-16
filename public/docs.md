@@ -119,16 +119,6 @@ export const VideoPlayer = () => {
               maxLoadingDelay: 0.5,
               fpsDroppedMonitoringPeriod: 2000, // Monitorea cada 2 segundos
               fpsDroppedMonitoringThreshold: 0.2, // Considera que los FPS han caído si bajan un 20%
-              abrController: {
-                enabled: true,
-                bandwidth: 5, 
-                minRebuffer: 0.5,
-                maxRebuffer: 2,
-                minBuffer: 0.5,
-                maxBuffer: 2,
-                minBufferTime: 0.5,
-                maxBufferTime: 2,
-              },
             },
           },
         }}

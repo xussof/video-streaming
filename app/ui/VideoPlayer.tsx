@@ -1,18 +1,11 @@
 "use client";
-import { useState } from "react";
 import ReactPlayer from "react-player";
 
 export const VideoPlayer = () => {
-  const [playing, setPlaying] = useState(false);
   const videoUrl = "/video/vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps.m3u8";
-  const videoImage = "/thumbnails.jpg";
 
   const handleError = (error: unknown) => {
     console.error("Error playing video:", error);
-  };
-
-  const handlePlaying = () => {
-    setPlaying(!playing);
   };
 
   return (
@@ -22,8 +15,7 @@ export const VideoPlayer = () => {
         controls={true}
         width={640}
         height={360}
-        playing={playing}
-        light={videoImage}
+        playing={false}
         config={{
           file: {
             hlsOptions: {
@@ -38,22 +30,11 @@ export const VideoPlayer = () => {
               maxLoadingDelay: 0.5,
               fpsDroppedMonitoringPeriod: 2000, // Monitorea cada 2 segundos
               fpsDroppedMonitoringThreshold: 0.2, // Considera que los FPS han caído si bajan un 20%
-              abrController: {
-                enabled: true,
-                bandwidth: 5,
-                minRebuffer: 0.5,
-                maxRebuffer: 2,
-                minBuffer: 0.5,
-                maxBuffer: 2,
-                minBufferTime: 0.5,
-                maxBufferTime: 2,
-              },
             },
           },
         }}
         onError={handleError}
       />
-      <button onClick={handlePlaying}>{playing ? "Pause" : "Play"}</button>
     </div>
   );
 };
