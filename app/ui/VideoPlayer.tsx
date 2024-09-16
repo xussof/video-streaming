@@ -1,17 +1,50 @@
 "use client";
+import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
+import { getVideoIndex } from "../api/getVideoIndex";
 
 export const VideoPlayer = () => {
-  const videoUrl = "/video/vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps.m3u8";
+  const [videoIndex, setVideoIndex] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleError = (error: unknown) => {
     console.error("Error playing video:", error);
+    setError("An error occurred while playing the video.");
   };
+
+  useEffect(() => {
+    const loadVideo = async () => {
+      try {
+        const index = await getVideoIndex();
+        setVideoIndex(index);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching video index:", err);
+        setError("An error occurred while fetching the video index.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadVideo();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!videoIndex) {
+    return <div>Video index not found.</div>;
+  }
 
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={videoUrl}
+        url={videoIndex}
         controls={true}
         width={640}
         height={360}
