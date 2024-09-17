@@ -10,7 +10,27 @@ export const VideoPlayer = () => {
 
   const handleError = (error: unknown) => {
     console.error("Error playing video:", error);
-    setError("An error occurred while playing the video.");
+    if (error instanceof Error) {
+      setError(error.message);
+    } else if (error instanceof Event) {
+      console.log("Error event details:", {
+        type: error.type,
+        target: error.target,
+        currentTarget: error.currentTarget,
+        eventPhase: error.eventPhase,
+        bubbles: error.bubbles,
+        cancelable: error.cancelable,
+        composed: error.composed,
+        defaultPrevented: error.defaultPrevented,
+        returnValue: error.returnValue,
+        timeStamp: error.timeStamp,
+      });
+      setError(
+        "An error occurred while playing the video. Check console for details."
+      );
+    } else {
+      setError("An unknown error occurred while playing the video.");
+    }
   };
 
   useEffect(() => {
@@ -18,19 +38,12 @@ export const VideoPlayer = () => {
       try {
         const indexContent = await getVideoIndex();
         if (typeof indexContent === "string") {
-          // Parsea el contenido del índice M3U8
-          const segments = indexContent
-            .split("\n")
-            .filter((line) => line.startsWith("#EXT-X-"));
-
-          // Crea un array con todas las URLs de los segmentos
-          const urls = segments.map((segment) => {
-            const [, , , path] = segment.split(" ");
-            return `${process.env.NEXT_PUBLIC_SIV_URL}${path}`;
-          });
-
-          // Crea un blob con todos los segmentos
-          const blob = new Blob(urls, {
+          console.log(
+            "Contenido del índice M3U8 en VideoPlayer:",
+            indexContent.substring(0, 1000)
+          );
+          // Crea un blob con el contenido del índice M3U8
+          const blob = new Blob([indexContent], {
             type: "application/vnd.apple.mpegurl",
           });
           const url = window.URL.createObjectURL(blob);
@@ -71,10 +84,10 @@ export const VideoPlayer = () => {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 30, // Aumenta el buffer para dar más tiempo al demuxer
+              maxBufferLength: 60, // Aumenta el buffer para dar más tiempo al demuxer
               liveSyncDurationCount: 1,
-              maxMaxBufferLength: 30,
-              backBufferLength: 30,
+              maxMaxBufferLength: 60,
+              backBufferLength: 60,
               maxBufferHole: 0.2,
               maxStarvationDelay: 10,
               maxLoadingDelay: 5,
@@ -83,7 +96,13 @@ export const VideoPlayer = () => {
             },
           },
         }}
-        onError={handleError}
+        onError={(error) => {
+          console.error("ReactPlayer error:", error);
+          handleError(error);
+        }}
+        onPlay={() => console.log("Video started playing")}
+        onPause={() => console.log("Video paused")}
+        onEnded={() => console.log("Video ended")}
       />
     </div>
   );
