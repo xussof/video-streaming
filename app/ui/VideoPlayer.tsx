@@ -1,63 +1,71 @@
+// En VideoPlayer.tsx
 "use client";
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { getVideoIndex } from "../api/getVideoIndex";
+import { getVideoSegment } from "../api/getVideoSegment";
+
+interface VideoState {
+  playedSeconds: number;
+  loadedSeconds: number;
+}
 
 export const VideoPlayer = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSegment, setCurrentSegment] = useState<number>(0);
 
   const handleError = (error: unknown) => {
     console.error("Error playing video:", error);
-    if (error instanceof Error) {
-      setError(error.message);
-    } else if (error instanceof Event) {
-      console.log("Error event details:", {
-        type: error.type,
-        target: error.target,
-        currentTarget: error.currentTarget,
-        eventPhase: error.eventPhase,
-        bubbles: error.bubbles,
-        cancelable: error.cancelable,
-        composed: error.composed,
-        defaultPrevented: error.defaultPrevented,
-        returnValue: error.returnValue,
-        timeStamp: error.timeStamp,
-      });
-      setError(
-        "An error occurred while playing the video. Check console for details."
-      );
-    } else {
-      setError("An unknown error occurred while playing the video.");
-    }
+    setError("An error occurred while playing the video.");
   };
 
   useEffect(() => {
     const loadVideo = async () => {
       try {
-        const indexContent = await getVideoIndex();
-        if (typeof indexContent === "string") {
-          console.log(
-            "Contenido del índice M3U8 en VideoPlayer:",
-            indexContent.substring(0, 1000)
-          );
-          // Crea un blob con el contenido del índice M3U8
-          const blob = new Blob([indexContent], {
-            type: "application/vnd.apple.mpegurl",
-          });
-          const url = window.URL.createObjectURL(blob);
-          setVideoUrl(url);
-        }
+        const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
+        const indexContent = await getVideoIndex(videoId);
+
+        // Crea un blob con el contenido del índice M3U8
+        const blob = new Blob([indexContent], {
+          type: "application/vnd.apple.mpegurl",
+        });
+        const url = window.URL.createObjectURL(blob);
+        setVideoUrl(url);
+
+        // Obtiene el primer segmento
+        await getVideoSegment(videoId, 0);
+        setCurrentSegment(1); // Se prepara para cargar el siguiente segmento
       } catch (err) {
-        console.error("Error fetching video index:", err);
-        setError("An error occurred while fetching the video index.");
+        console.error("Error loading video:", err);
+        setError("An error occurred while loading the video.");
       } finally {
         setLoading(false);
       }
     };
     loadVideo();
   }, []);
+
+  const handleProgress = async (state: VideoState) => {
+    if (!videoUrl) return;
+
+    const currentTime = state.playedSeconds;
+    const duration = state.loadedSeconds;
+
+    // Calcula cuándo cargar el siguiente segmento
+    if (currentTime > duration * 0.75) {
+      try {
+        await getVideoSegment(
+          "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
+          currentSegment
+        );
+        setCurrentSegment(currentSegment + 1);
+      } catch (err) {
+        console.error("Error loading next segment:", err);
+      }
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -76,23 +84,23 @@ export const VideoPlayer = () => {
       <ReactPlayer
         url={videoUrl}
         controls={true}
-        width={640}
-        height={360}
+        width="100%"
+        height="100%"
         playing={false}
         config={{
           file: {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 60, // Aumenta el buffer para dar más tiempo al demuxer
+              maxBufferLength: 60,
               liveSyncDurationCount: 1,
               maxMaxBufferLength: 60,
               backBufferLength: 60,
               maxBufferHole: 0.2,
               maxStarvationDelay: 10,
               maxLoadingDelay: 5,
-              fpsDroppedMonitoringPeriod: 5000, // Monitorea cada 5 segundos
-              fpsDroppedMonitoringThreshold: 0.3, // Considera que los FPS han caído si bajan un 30%
+              fpsDroppedMonitoringPeriod: 5000,
+              fpsDroppedMonitoringThreshold: 0.3,
             },
           },
         }}
@@ -100,9 +108,7 @@ export const VideoPlayer = () => {
           console.error("ReactPlayer error:", error);
           handleError(error);
         }}
-        onPlay={() => console.log("Video started playing")}
-        onPause={() => console.log("Video paused")}
-        onEnded={() => console.log("Video ended")}
+        onProgress={(state) => handleProgress(state)}
       />
     </div>
   );
