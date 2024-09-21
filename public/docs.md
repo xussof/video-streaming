@@ -177,3 +177,15 @@ Este objeto configura el controlador de bitrate adaptable (ABR):
 - minBufferTime: 0.5 - Tiempo mínimo de búfer en segundos.
 - maxBufferTime: 2 - Tiempo máximo de búfer en segundos.
 
+## APIs
+
+- La llamada a la api watch video trae el indice completo y tambien lo modifico a una url para que sirva las partes, por ahora, este paso no funciona, cuando hago click en la url de una parte, lanza este error en el navegador:
+```
+Failed to load resource: the server responded with a status of 429 ()
+{
+  "message": "Invalid API key. Go to https://docs.rapidapi.com/docs/keys for more info."
+}
+```
+- En la api de watch segments he creado la llamada, pero como no funcionan las urls aun no lo puedo probar.
+
+- En el componente VideoPlayer, aparece el reproductor pero no hace nada, he ido modificando la logica hasta descubrir que esta fallando la carga de segmentos, sigo trabajando en ello.
