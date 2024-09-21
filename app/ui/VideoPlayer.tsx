@@ -24,7 +24,7 @@ export const VideoPlayer = () => {
   useEffect(() => {
     const loadVideo = async () => {
       try {
-        const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
+        const videoId = 1;
         const indexContent = await getVideoIndex(videoId);
 
         // Crea un blob con el contenido del índice M3U8
@@ -56,10 +56,7 @@ export const VideoPlayer = () => {
     // Calcula cuándo cargar el siguiente segmento
     if (currentTime > duration * 0.75) {
       try {
-        await getVideoSegment(
-          "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
-          currentSegment
-        );
+        await getVideoSegment(1, currentSegment);
         setCurrentSegment(currentSegment + 1);
       } catch (err) {
         console.error("Error loading next segment:", err);

@@ -1,5 +1,5 @@
 // En getVideoIndex.ts
-export const getVideoIndex = async (videoId: string): Promise<string> => {
+export const getVideoIndex = async (videoId: number): Promise<string> => {
   const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
   const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
   const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-video/${videoId}`;

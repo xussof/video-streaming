@@ -1,6 +1,6 @@
 // En getVideoSegment.ts
 export const getVideoSegment = async (
-  videoId: string,
+  videoId: number,
   segmentIndex: number
 ): Promise<Blob> => {
   const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-hls-segment/${videoId}/${segmentIndex}`;
