@@ -189,3 +189,6 @@ Failed to load resource: the server responded with a status of 429 ()
 - En la api de watch segments he creado la llamada, pero como no funcionan las urls aun no lo puedo probar.
 
 - En el componente VideoPlayer, aparece el reproductor pero no hace nada, he ido modificando la logica hasta descubrir que esta fallando la carga de segmentos, sigo trabajando en ello.
+
+
+- El error está en la construcción de las urls de las los segmentos del video, estaba pasando el string del index, estoy en ello, ahora he dejado que videoId sea un number y le he pasado el 1, falta construir la URL y probar si funciona.
