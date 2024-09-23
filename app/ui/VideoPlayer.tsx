@@ -1,123 +1,88 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { getVideoIndex } from "../api/getVideoIndex";
 import { getVideoSegment } from "../api/getVideoSegment";
-import parse from "m3u8-parser";
 
 interface VideoState {
   playedSeconds: number;
   loadedSeconds: number;
 }
 
+async function loadNextSegment(
+  videoId: string,
+  currentSegmentIndex: number,
+  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
+  setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
+): Promise<void> {
+  try {
+    const blob = await getVideoSegment(videoId, currentSegmentIndex + 1);
+
+    // Crea un blob con el contenido del segmento
+    const url = window.URL.createObjectURL(blob);
+
+    // Actualiza el estado para cargar el siguiente segmento
+    setVideoUrl(url);
+    setCurrentSegmentIndex(currentSegmentIndex + 1);
+  } catch (err) {
+    console.error("Error loading next segment:", err);
+    throw err;
+  }
+}
+
 export const VideoPlayer = () => {
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [segmentUrls, setSegmentUrls] = useState<string[]>([]);
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentSegment, setCurrentSegment] = useState<number>(0);
-  const [totalSegments, setTotalSegments] = useState<number>(0);
-  const playerRef = useRef<ReactPlayer>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
-  const handleError = (message: string) => {
-    console.error(message);
-    setError(message);
+  const handleError = (error: unknown) => {
+    console.error("Error playing video:", error);
+    setError("An error occurred while playing the video.");
   };
 
   useEffect(() => {
     const loadVideo = async () => {
       try {
-        const videoIndex = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
+        const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
 
-        // Obtiene y procesa el índice M3U8
-        const indexContent = await getVideoIndex(videoIndex);
-        console.log("indexcontent", indexContent);
-        const parser = parse(indexContent);
-        console.log("parser", parser);
-        const segments = parser.segments;
-        console.log("segments", segments);
+        // Obtiene las URLs de los segmentos
+        const urls = await getVideoIndex(videoId);
+        setSegmentUrls(urls);
 
-        if (!segments || !segments.length) {
-          throw new Error("No video segments found");
-        }
+        // Carga el primer segmento
+        await loadNextSegment(videoId, 0, setVideoUrl, setCurrentSegmentIndex);
 
-        setTotalSegments(segments.length);
-
-        // Carga los primeros 3 segmentos
-        const initialSegments = segments.slice(0, 3);
-        const urls = await Promise.all(
-          initialSegments.map(async (segment: object, index: number) => {
-            const blob = await getVideoSegment(videoIndex, index);
-            console.log("initialsegment", initialSegments);
-            console.log("urls", urls);
-            console.log("blob", blob);
-            console.log(
-              "window.URL.createObjectURL(blob)",
-              window.URL.createObjectURL(blob)
-            );
-            return window.URL.createObjectURL(blob);
-          })
-        );
-
-        // Crea un nuevo índice M3U8 con las URLs locales
-        const newM3U8Content = initialSegments.reduce((acc, segment, index) => {
-          acc += `#EXTINF:${segment.duration},${segment.title || ""}\n`;
-          acc += `${urls[index]}\n`;
-          console.log("acc", acc);
-          return acc;
-        }, "#EXTM3U\n");
-
-        // Actualiza la URL del reproductor
-        const blob = new Blob([newM3U8Content], {
-          type: "application/vnd.apple.mpegurl",
-        });
-        console.log("newBblob", blob);
-        const url = window.URL.createObjectURL(blob);
-        console.log("newURL", url);
-        setVideoUrl(url);
+        setLoading(false);
       } catch (err) {
         console.error("Error loading video:", err);
-        handleError("An error occurred while loading the video.");
-      } finally {
-        setLoading(false);
+        setError("An error occurred while loading the video.");
       }
     };
     loadVideo();
   }, []);
 
   const handleProgress = async (state: VideoState) => {
-    if (!videoUrl || !playerRef.current) return;
+    if (!segmentUrls.length || !videoUrl) return;
 
     const currentTime = state.playedSeconds;
     const duration = state.loadedSeconds;
 
-    // Calcula cuándo cargar el siguiente segmento
-    if (currentTime > duration * 0.75 && currentSegment < totalSegments - 1) {
+    // Calcular cuándo cargar el siguiente segmento
+    if (
+      currentTime > duration * 0.75 &&
+      currentSegmentIndex < segmentUrls.length - 1
+    ) {
       try {
-        const videoIndex = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
-        const nextSegment = await getVideoSegment(
-          videoIndex,
-          currentSegment + 1
+        await loadNextSegment(
+          "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
+          currentSegmentIndex,
+          setVideoUrl,
+          setCurrentSegmentIndex
         );
-        const blobUrl = window.URL.createObjectURL(nextSegment);
-
-        // Actualiza la URL del reproductor con el nuevo segmento
-        const parser = parse(videoUrl);
-        parser.segments[currentSegment + 1].uri = blobUrl;
-        console.log(
-          "parser.segments[currentSegment + 1].uri",
-          parser.segments[currentSegment + 1].uri
-        );
-        const newM3U8Content = parser.toString();
-        console.log(newM3U8Content);
-        const newBlob = new Blob([newM3U8Content], {
-          type: "application/vnd.apple.mpegurl",
-        });
-        setVideoUrl(window.URL.createObjectURL(newBlob));
-
-        setCurrentSegment(currentSegment + 1);
       } catch (err) {
         console.error("Error loading next segment:", err);
-        handleError("An error occurred while loading the next video segment.");
       }
     }
   };
@@ -130,14 +95,13 @@ export const VideoPlayer = () => {
     return <div>{error}</div>;
   }
 
-  if (!videoUrl) {
-    return <div>Video index not found.</div>;
+  if (!segmentUrls.length || !videoUrl) {
+    return <div>No video segments found.</div>;
   }
 
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        ref={playerRef}
         url={videoUrl}
         controls={true}
         width="100%"
@@ -162,7 +126,7 @@ export const VideoPlayer = () => {
         }}
         onError={(error) => {
           console.error("ReactPlayer error:", error);
-          handleError("An error occurred while playing the video.");
+          handleError(error);
         }}
         onProgress={(state) => handleProgress(state)}
       />
