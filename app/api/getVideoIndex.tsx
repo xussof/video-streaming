@@ -1,10 +1,10 @@
 // En getVideoIndex.ts
-export const getVideoIndex = async (videoId: number): Promise<string> => {
+export const getVideoIndex = async (videoIndex: string): Promise<string> => {
   const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
   const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
-  const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-video/${videoId}`;
-  const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
   const baseUrl = process.env.NEXT_PUBLIC_SIV_URL;
+  const apiUrl = `${baseUrl}api/scaleway-watch-video/${videoIndex}`;
+  const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
 
   if (!apiHost || !apiKey || !apiUrl || !userKey || !baseUrl) {
     throw new Error(
@@ -29,14 +29,7 @@ export const getVideoIndex = async (videoId: number): Promise<string> => {
     }
     const data = await response.text();
     console.log("Contenido del índice M3U8:", data.substring(0, 1000));
-
-    // Modifica las URLs para hacerlas absolutas
-    const modifiedData = data.replace(/(vid-.+\.ts)/g, `${baseUrl}$1`);
-    console.log(
-      "Contenido del índice M3U8 modificado:",
-      modifiedData.substring(0, 1000)
-    );
-    return modifiedData;
+    return data;
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error fetching video index:", error.message);

@@ -1,9 +1,10 @@
 // En getVideoSegment.ts
 export const getVideoSegment = async (
-  videoId: number,
+  videoIndex: string,
   segmentIndex: number
 ): Promise<Blob> => {
-  const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-hls-segment/${videoId}/${segmentIndex}`;
+  const baseUrl = process.env.NEXT_PUBLIC_SIV_URL;
+  const apiUrl = `${baseUrl}api/scaleway-watch-hls-segment/${videoIndex}/${segmentIndex}`;
   const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
   const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
   const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
