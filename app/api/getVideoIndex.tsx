@@ -2,9 +2,9 @@
 export const getVideoIndex = async (videoId: string): Promise<string[]> => {
   const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
   const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
-  const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-video/${videoId}`;
-  const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
   const baseUrl = process.env.NEXT_PUBLIC_SIV_URL;
+  const apiUrl = `${baseUrl}api/scaleway-watch-video/${videoId}`;
+  const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
 
   if (!apiHost || !apiKey || !apiUrl || !userKey || !baseUrl) {
     throw new Error(
@@ -38,12 +38,22 @@ export const getVideoIndex = async (videoId: string): Promise<string[]> => {
     );
 
     // Extrae las URLs de los segmentos
-    const segmentUrls = modifiedData
+    let segmentUrls = modifiedData
       .split("\n")
       .filter((line) => line.startsWith("#EXTINF") || line.endsWith(".ts"))
       .filter((line) => !line.startsWith("#"))
       .map((line) => line.trim());
 
+    // Modificar las URLs de los segmentos
+    segmentUrls = segmentUrls.map((url, index) => {
+      if (url.endsWith(".ts")) {
+        const fileName = url.split("/").pop()!;
+        return url.replace(fileName, `${fileName}/${index}`);
+      }
+      return url;
+    });
+
+    console.log("segmentUrls modificadas", segmentUrls);
     return segmentUrls;
   } catch (error: unknown) {
     if (error instanceof Error) {

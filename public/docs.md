@@ -194,3 +194,6 @@ Failed to load resource: the server responded with a status of 429 ()
 - El error está en la construcción de las urls de las los segmentos del video, estaba pasando el string del index, estoy en ello, ahora he dejado que videoId sea un number y le he pasado el 1, falta construir la URL y probar si funciona.
 
 - Retiro la libreria m3u8-parse, intento crear las urls separando los segmentos de video, no conseguido, sigo en ello.
+
+- Consigo crear un arry con las urls de los segmentos y con su indice, pero veo que la url de los segmentos solo lleva el videoindex y /0, /1, etc.
+Necesito conseguir esa url.
