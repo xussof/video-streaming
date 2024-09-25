@@ -197,3 +197,20 @@ Failed to load resource: the server responded with a status of 429 ()
 
 - Consigo crear un arry con las urls de los segmentos y con su indice, pero veo que la url de los segmentos solo lleva el videoindex y /0, /1, etc.
 Necesito conseguir esa url.
+
+- He conseguido la url correcta para los segmentos, pero estoy bloqueada, no consigo reproducir el video, estoy es lo queme dice la IA:
+
+**Análisis del problema**
+- La respuesta de la API muestra un código de estado 200 (OK), lo cual indica que la solicitud llegó correctamente al servidor.
+- Sin embargo, el contenido de la respuesta contiene un mensaje de error: "Invalid API key. Go to https://docs.rapidapi.com/docs/keys for more info."
+- Esto sugiere que la clave de API utilizada no es válida o no tiene permisos adecuados.
+**Posibles causas y soluciones**
+- Clave de API incorrecta:
+La clave de API mostrada en los logs podría estar expirada o haber sido revocada.
+- Es posible que la clave de API no esté asociada al plan correcto o no tenga acceso a la API Scaleway Watch.
+- Configuración de RapidAPI:
+- Puede que la configuración de la API en RapidAPI no esté completa o sea incorrecta.
+- Problemas de CORS:
+Aunque la respuesta muestra un tipo 'cors', es posible que haya problemas de CORS en el lado del servidor.
+
+## Debo revisar la confguración hls de la libreria react-player, parece venir de ahi el error.

@@ -9,12 +9,20 @@ interface VideoState {
   loadedSeconds: number;
 }
 
-async function loadNextSegment(
+type LoadNextSegmentFn = (
   videoId: string,
   currentSegmentIndex: number,
   setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
-): Promise<void> {
+) => Promise<void>;
+
+// Función auxiliar para cargar el siguiente segmento
+const loadNextSegment: LoadNextSegmentFn = async (
+  videoId: string,
+  currentSegmentIndex: number,
+  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
+  setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
+) => {
   try {
     const blob = await getVideoSegment(videoId, currentSegmentIndex + 1);
 
@@ -28,7 +36,39 @@ async function loadNextSegment(
     console.error("Error loading next segment:", err);
     throw err;
   }
-}
+};
+
+// Manejar el progreso del video
+const handleProgress = async (
+  state: VideoState,
+  segmentUrls: string[],
+  currentSegmentIndex: number,
+  loadNextSegment: LoadNextSegmentFn,
+  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
+  setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
+): Promise<void> => {
+  if (!segmentUrls.length || state.playedSeconds === 0) return;
+
+  const currentTime = state.playedSeconds;
+  const duration = state.loadedSeconds;
+
+  // Calcular cuándo cargar el siguiente segmento, a 3/4
+  if (
+    currentTime > duration * 0.75 &&
+    currentSegmentIndex < segmentUrls.length - 1
+  ) {
+    try {
+      await loadNextSegment(
+        "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
+        currentSegmentIndex,
+        setVideoUrl,
+        setCurrentSegmentIndex
+      );
+    } catch (err) {
+      console.error("Error loading next segment:", err);
+    }
+  }
+};
 
 export const VideoPlayer = () => {
   const [segmentUrls, setSegmentUrls] = useState<string[]>([]);
@@ -47,12 +87,12 @@ export const VideoPlayer = () => {
       try {
         const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
 
-        // Obtiene las URLs de los segmentos
+        // Obtiene los nombres de archivos de los segmentos
         const urls = await getVideoIndex(videoId);
         setSegmentUrls(urls);
 
         // Carga el primer segmento
-        await loadNextSegment(videoId, 0, setVideoUrl, setCurrentSegmentIndex);
+        await loadNextSegment(videoId, -1, setVideoUrl, setCurrentSegmentIndex);
 
         setLoading(false);
       } catch (err) {
@@ -62,30 +102,6 @@ export const VideoPlayer = () => {
     };
     loadVideo();
   }, []);
-
-  const handleProgress = async (state: VideoState) => {
-    if (!segmentUrls.length || !videoUrl) return;
-
-    const currentTime = state.playedSeconds;
-    const duration = state.loadedSeconds;
-
-    // Calcular cuándo cargar el siguiente segmento
-    if (
-      currentTime > duration * 0.75 &&
-      currentSegmentIndex < segmentUrls.length - 1
-    ) {
-      try {
-        await loadNextSegment(
-          "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
-          currentSegmentIndex,
-          setVideoUrl,
-          setCurrentSegmentIndex
-        );
-      } catch (err) {
-        console.error("Error loading next segment:", err);
-      }
-    }
-  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -109,6 +125,7 @@ export const VideoPlayer = () => {
         playing={false}
         config={{
           file: {
+            forceHLS: true,
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
@@ -128,7 +145,16 @@ export const VideoPlayer = () => {
           console.error("ReactPlayer error:", error);
           handleError(error);
         }}
-        onProgress={(state) => handleProgress(state)}
+        onProgress={(state) =>
+          handleProgress(
+            state,
+            segmentUrls,
+            currentSegmentIndex,
+            loadNextSegment,
+            setVideoUrl,
+            setCurrentSegmentIndex
+          )
+        }
       />
     </div>
   );
