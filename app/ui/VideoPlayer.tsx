@@ -9,31 +9,33 @@ interface VideoState {
   loadedSeconds: number;
 }
 
-type LoadNextSegmentFn = (
+type LoadNextSegmentsFn = (
   videoId: string,
   currentSegmentIndex: number,
-  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
+  setVideoUrls: React.Dispatch<React.SetStateAction<string[]>>,
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
 ) => Promise<void>;
 
-// Función auxiliar para cargar el siguiente segmento
-const loadNextSegment: LoadNextSegmentFn = async (
+const loadNextSegments: LoadNextSegmentsFn = async (
   videoId: string,
   currentSegmentIndex: number,
-  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
+  setVideoUrls: React.Dispatch<React.SetStateAction<string[]>>,
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
 ) => {
   try {
-    const blob = await getVideoSegment(videoId, currentSegmentIndex + 1);
+    const nextSegments: string[] = [];
+    for (let i = 1; i <= 3; i++) {
+      // Pre-cargar los próximos 3 segmentos
+      const blob = await getVideoSegment(videoId, currentSegmentIndex + i);
+      const url = window.URL.createObjectURL(blob);
+      nextSegments.push(url);
 
-    // Crea un blob con el contenido del segmento
-    const url = window.URL.createObjectURL(blob);
-
-    // Actualiza el estado para cargar el siguiente segmento
-    setVideoUrl(url);
-    setCurrentSegmentIndex(currentSegmentIndex + 1);
+      console.log(`Loaded segment ${currentSegmentIndex + i}: ${url}`);
+    }
+    setVideoUrls((prevUrls) => [...prevUrls, ...nextSegments]);
+    setCurrentSegmentIndex(currentSegmentIndex + 3);
   } catch (err) {
-    console.error("Error loading next segment:", err);
+    console.error("Error loading next segments:", err);
     throw err;
   }
 };
@@ -43,8 +45,8 @@ const handleProgress = async (
   state: VideoState,
   segmentUrls: string[],
   currentSegmentIndex: number,
-  loadNextSegment: LoadNextSegmentFn,
-  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>,
+  loadNextSegments: LoadNextSegmentsFn,
+  setVideoUrls: React.Dispatch<React.SetStateAction<string[]>>,
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
 ): Promise<void> => {
   if (!segmentUrls.length || state.playedSeconds === 0) return;
@@ -52,20 +54,22 @@ const handleProgress = async (
   const currentTime = state.playedSeconds;
   const duration = state.loadedSeconds;
 
-  // Calcular cuándo cargar el siguiente segmento, a 3/4
+  console.log(`Current time: ${currentTime}, Duration: ${duration}`);
+
+  // Calcular cuándo cargar los siguientes segmentos, a 3/4
   if (
     currentTime > duration * 0.75 &&
     currentSegmentIndex < segmentUrls.length - 1
   ) {
     try {
-      await loadNextSegment(
+      await loadNextSegments(
         "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
         currentSegmentIndex,
-        setVideoUrl,
+        setVideoUrls,
         setCurrentSegmentIndex
       );
     } catch (err) {
-      console.error("Error loading next segment:", err);
+      console.error("Error loading next segments:", err);
     }
   }
 };
@@ -75,7 +79,7 @@ export const VideoPlayer = () => {
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
 
   const handleError = (error: unknown) => {
     console.error("Error playing video:", error);
@@ -84,6 +88,8 @@ export const VideoPlayer = () => {
 
   useEffect(() => {
     const loadVideo = async () => {
+      console.log("Segment URLs:", segmentUrls);
+      console.log("Video URLs:", videoUrls);
       try {
         const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
 
@@ -91,8 +97,13 @@ export const VideoPlayer = () => {
         const urls = await getVideoIndex(videoId);
         setSegmentUrls(urls);
 
-        // Carga el primer segmento
-        await loadNextSegment(videoId, -1, setVideoUrl, setCurrentSegmentIndex);
+        // Carga los primeros segmentos
+        await loadNextSegments(
+          videoId,
+          -1,
+          setVideoUrls,
+          setCurrentSegmentIndex
+        );
 
         setLoading(false);
       } catch (err) {
@@ -111,14 +122,14 @@ export const VideoPlayer = () => {
     return <div>{error}</div>;
   }
 
-  if (!segmentUrls.length || !videoUrl) {
+  if (!segmentUrls.length || !videoUrls.length) {
     return <div>No video segments found.</div>;
   }
-
+  console.log("videoUrls dentro de reproductor", videoUrls);
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={videoUrl}
+        url={videoUrls}
         controls={true}
         width="100%"
         height="100%"
@@ -150,8 +161,8 @@ export const VideoPlayer = () => {
             state,
             segmentUrls,
             currentSegmentIndex,
-            loadNextSegment,
-            setVideoUrl,
+            loadNextSegments,
+            setVideoUrls,
             setCurrentSegmentIndex
           )
         }

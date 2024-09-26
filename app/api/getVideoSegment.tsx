@@ -5,8 +5,6 @@ export const getVideoSegment = async (
   const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-hls-segment/${videoId}/${segmentIndex}`;
 
   console.log("URL de segmento:", apiUrl);
-  console.log("Clave de API:", process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY);
-  console.log("Host de API:", process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST);
 
   const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
   const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
@@ -34,16 +32,19 @@ export const getVideoSegment = async (
     }
 
     const blob = await response.blob();
+    console.log("Tipo del blob:", blob.type);
+    console.log("Tamaño del blob:", blob.size);
     console.log("Segmento obtenido:", segmentIndex);
     console.log("blob:", blob);
+
+    // Verificar si el tipo es 'video/mp2t'
+    if (blob.type !== "video/mp2t") {
+      throw new Error('El tipo del blob no es "video/mp2t"');
+    }
+
     return blob;
   } catch (error: unknown) {
     console.error("Error fetching video segment:", error);
-    if (error instanceof Error && error.message.includes("Invalid API key")) {
-      alert(
-        "La clave de API es inválida. Por favor, revise la configuración de RapidAPI."
-      );
-    }
     throw error;
   }
 };
