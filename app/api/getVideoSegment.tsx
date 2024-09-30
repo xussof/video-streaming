@@ -1,3 +1,4 @@
+// getVideoSegment.ts
 export const getVideoSegment = async (
   videoId: string,
   segmentIndex: number
@@ -18,7 +19,7 @@ export const getVideoSegment = async (
         "X-RapidAPI-Host": apiHost || "",
         "X-RapidAPI-Key": apiKey || "",
         "user-management-key": userKey || "",
-        Accept: "application/json",
+        Accept: "*/*",
       },
       body: JSON.stringify({
         bucket_name: "siv-pre",
@@ -37,9 +38,9 @@ export const getVideoSegment = async (
     console.log("Segmento obtenido:", segmentIndex);
     console.log("blob:", blob);
 
-    // Verificar si el tipo es 'video/mp2t'
-    if (blob.type !== "video/mp2t") {
-      throw new Error('El tipo del blob no es "video/mp2t"');
+    // Verificar si el tipo es válido
+    if (blob.type && !blob.type.includes("video/")) {
+      throw new Error("El tipo del blob no es válido");
     }
 
     return blob;
