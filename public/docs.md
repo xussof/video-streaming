@@ -205,3 +205,13 @@ Necesito conseguir esa url.
 Añado console.logs para intentar identificar porque no se reproduce el video, segmentUrls y videoUrls al principio son arrays vacios pero luego veo que se carga el segmento blob y la url del segmento. El blob es localhost, debo revisar si esto debe ser asi o no. Las respuestas de la API, tipo de blob, segmento obtenido, son correctos. El array de videoUrls que recibe el reproductor contiene blobs, no se si esto debe ser asi, ya que ademas son localhost. 
 
 **Siguiente paso investigar sobre blob, saber si estoy recibiendo las urls correctas en formato y sirviendolas de forma correcta al reproductor. En este punto, se visualiza el reproductor en pantalla, pero no funciona. **
+
+## Implemetación de Axios y verificacion de codigo
+
+Las llamadas funcionan correctamente, es un error de la API:
+
+```
+{
+  "message": "Invalid API key. Go to https://docs.rapidapi.com/docs/keys for more info."
+}
+```
