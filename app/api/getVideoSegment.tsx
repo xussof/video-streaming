@@ -1,4 +1,5 @@
-// getVideoSegment.ts
+import axios from "axios";
+
 export const getVideoSegment = async (
   videoId: string,
   segmentIndex: number
@@ -12,27 +13,26 @@ export const getVideoSegment = async (
   const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
 
   try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-RapidAPI-Host": apiHost || "",
-        "X-RapidAPI-Key": apiKey || "",
-        "user-management-key": userKey || "",
-        Accept: "*/*",
-      },
-      body: JSON.stringify({
-        bucket_name: "siv-pre",
-      }),
-    });
+    const response = await axios.post(
+      apiUrl,
+      { bucket_name: "siv-pre" },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-RapidAPI-Host": apiHost || "",
+          "X-RapidAPI-Key": apiKey || "",
+          "user-management-key": userKey || "",
+          Accept: "/",
+        },
+        responseType: "blob",
+      }
+    );
 
     console.log("Respuesta:", response);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const blob = await response.blob();
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
     console.log("Tipo del blob:", blob.type);
     console.log("Tamaño del blob:", blob.size);
     console.log("Segmento obtenido:", segmentIndex);
@@ -44,8 +44,11 @@ export const getVideoSegment = async (
     }
 
     return blob;
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error fetching video segment:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(`HTTP error! status: ${error.response.status}`);
+    }
     throw error;
   }
 };

@@ -88,8 +88,6 @@ export const VideoPlayer = () => {
 
   useEffect(() => {
     const loadVideo = async () => {
-      console.log("Segment URLs:", segmentUrls);
-      console.log("Video URLs:", videoUrls);
       try {
         const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
 
