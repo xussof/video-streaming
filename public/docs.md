@@ -215,3 +215,7 @@ Las llamadas funcionan correctamente, es un error de la API:
   "message": "Invalid API key. Go to https://docs.rapidapi.com/docs/keys for more info."
 }
 ```
+
+- Intentar que la response de videosegment no sea un blob y reproducirla directamente
+- insvestigar si hay otro formato que no sea blob para recobir las respues en binario
+- prbar con el archivo que decargo de postman a pasarlo por el reproductor

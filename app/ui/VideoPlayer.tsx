@@ -127,7 +127,7 @@ export const VideoPlayer = () => {
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url="https://cloudsolute-pre.p.rapidapi.com/api/scaleway-watch-hls-segment/vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps/2"
+        url={videoUrls}
         controls={true}
         width="100%"
         height="100%"
