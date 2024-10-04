@@ -127,7 +127,7 @@ export const VideoPlayer = () => {
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={videoUrls}
+        url="https://cloudsolute-pre.p.rapidapi.com/api/scaleway-watch-hls-segment/vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps/2"
         controls={true}
         width="100%"
         height="100%"
@@ -138,10 +138,10 @@ export const VideoPlayer = () => {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 60,
+              maxBufferLength: 600,
               liveSyncDurationCount: 1,
-              maxMaxBufferLength: 60,
-              backBufferLength: 60,
+              maxMaxBufferLength: 600,
+              backBufferLength: 600,
               maxBufferHole: 0.2,
               maxStarvationDelay: 10,
               maxLoadingDelay: 5,
