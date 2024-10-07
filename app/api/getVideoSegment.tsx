@@ -5,12 +5,9 @@ export const getVideoSegment = async (
   segmentIndex: number
 ): Promise<Blob> => {
   const apiUrl = `${process.env.NEXT_PUBLIC_SIV_URL}api/scaleway-watch-hls-segment/${videoId}/${segmentIndex}`;
-
-  console.log("URL de segmento:", apiUrl);
-
-  // const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
-  // const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
-  // const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
+  const apiHost = process.env.NEXT_PUBLIC_SIV_RAPIDAPIHOST;
+  const apiKey = process.env.NEXT_PUBLIC_SIV_RAPIDAPIKEY;
+  const userKey = process.env.NEXT_PUBLIC_SERVICE_USER_MANAGEMENT_KEY;
 
   try {
     const response = await axios.post(
@@ -19,25 +16,17 @@ export const getVideoSegment = async (
       {
         headers: {
           "Content-Type": "application/json",
-          "X-RapidAPI-Host": "cloudsolute-pre.p.rapidapi.com",
-          "X-RapidAPI-Key":
-            "c47807e6e4msh1064e0320d58bb2p1e17d2jsn00995ba034f8",
-          "user-management-key": "gHrggF34u7GS1FY1h4kUfOIkXOyapZqw",
-          Accept: "/",
+          "X-RapidAPI-Host": apiHost,
+          "X-RapidAPI-Key": apiKey,
+          "user-management-key": userKey,
         },
         responseType: "blob",
       }
     );
 
-    console.log("Respuesta:", response);
-
     const blob = new Blob([response.data], {
       type: response.headers["content-type"],
     });
-    console.log("Tipo del blob:", blob.type);
-    console.log("Tamaño del blob:", blob.size);
-    console.log("Segmento obtenido:", segmentIndex);
-    console.log("blob:", blob);
 
     // Verificar si el tipo es válido
     if (blob.type && !blob.type.includes("video/")) {

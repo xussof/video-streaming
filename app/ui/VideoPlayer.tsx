@@ -1,38 +1,37 @@
 "use client";
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
-import { getVideoIndex } from "../api/getVideoIndex";
 import { getVideoSegment } from "../api/getVideoSegment";
 
-interface VideoState {
-  playedSeconds: number;
-  loadedSeconds: number;
-}
+// Crear un archivo .m3u8 dinámico a partir de las URLs de los segmentos
+const createM3U8File = (segmentUrls: string[]): string => {
+  const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:10\n#EXT-X-MEDIA-SEQUENCE:0\n`;
+  const segmentList = segmentUrls
+    .map((url) => `#EXTINF:10,\n${url}`)
+    .join("\n");
+  const m3u8Footer = "#EXT-X-ENDLIST";
+  const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
+  const blob = new Blob([m3u8Content], {
+    type: "application/vnd.apple.mpegurl",
+  });
+  return window.URL.createObjectURL(blob);
+};
 
-type LoadNextSegmentsFn = (
+// Cargar los siguientes segmentos de video
+const loadNextSegments = async (
   videoId: string,
   currentSegmentIndex: number,
-  setVideoUrls: React.Dispatch<React.SetStateAction<string[]>>,
+  setSegmentUrls: React.Dispatch<React.SetStateAction<string[]>>,
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
-) => Promise<void>;
-
-const loadNextSegments: LoadNextSegmentsFn = async (
-  videoId: string,
-  currentSegmentIndex: number,
-  setVideoUrls: React.Dispatch<React.SetStateAction<string[]>>,
-  setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
-) => {
+): Promise<void> => {
   try {
     const nextSegments: string[] = [];
-    for (let i = 1; i <= 3; i++) {
-      // Pre-cargar los próximos 3 segmentos
+    for (let i = 1; i <= 1; i++) {
       const blob = await getVideoSegment(videoId, currentSegmentIndex + i);
       const url = window.URL.createObjectURL(blob);
       nextSegments.push(url);
-
-      console.log(`Loaded segment ${currentSegmentIndex + i}: ${url}`);
     }
-    setVideoUrls((prevUrls) => [...prevUrls, ...nextSegments]);
+    setSegmentUrls((prevUrls) => [...prevUrls, ...nextSegments]);
     setCurrentSegmentIndex(currentSegmentIndex + 3);
   } catch (err) {
     console.error("Error loading next segments:", err);
@@ -42,21 +41,25 @@ const loadNextSegments: LoadNextSegmentsFn = async (
 
 // Manejar el progreso del video
 const handleProgress = async (
-  state: VideoState,
+  state: { playedSeconds: number; loadedSeconds: number },
   segmentUrls: string[],
   currentSegmentIndex: number,
-  loadNextSegments: LoadNextSegmentsFn,
-  setVideoUrls: React.Dispatch<React.SetStateAction<string[]>>,
+  loadNextSegments: (
+    videoId: string,
+    currentSegmentIndex: number,
+    setSegmentUrls: React.Dispatch<React.SetStateAction<string[]>>,
+    setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
+  ) => Promise<void>,
+  setSegmentUrls: React.Dispatch<React.SetStateAction<string[]>>,
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
 ): Promise<void> => {
-  if (!segmentUrls.length || state.playedSeconds === 0) return;
+  const { playedSeconds, loadedSeconds } = state;
+  if (!segmentUrls.length || playedSeconds === 0) return;
 
-  const currentTime = state.playedSeconds;
-  const duration = state.loadedSeconds;
+  const currentTime = playedSeconds;
+  const duration = loadedSeconds;
 
-  console.log(`Current time: ${currentTime}, Duration: ${duration}`);
-
-  // Calcular cuándo cargar los siguientes segmentos, a 3/4
+  // Calcular cuándo cargar los siguientes segmentos, a 3/4 del video
   if (
     currentTime > duration * 0.75 &&
     currentSegmentIndex < segmentUrls.length - 1
@@ -65,7 +68,7 @@ const handleProgress = async (
       await loadNextSegments(
         "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
         currentSegmentIndex,
-        setVideoUrls,
+        setSegmentUrls,
         setCurrentSegmentIndex
       );
     } catch (err) {
@@ -79,30 +82,26 @@ export const VideoPlayer = () => {
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [videoUrls, setVideoUrls] = useState<string[]>([]);
-
-  const handleError = (error: unknown) => {
-    console.error("Error playing video:", error);
-    setError("An error occurred while playing the video.");
-  };
+  const [videoUrl, setVideoUrl] = useState<string>("");
 
   useEffect(() => {
     const loadVideo = async () => {
       try {
         const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
 
-        // Obtiene los nombres de archivos de los segmentos
-        const urls = await getVideoIndex(videoId);
-        setSegmentUrls(urls);
+        // Pre-cargar los primeros 3 segmentos y generar el archivo .m3u8
+        const segmentBlobs: string[] = [];
+        for (let i = 0; i < 3; i++) {
+          const blob = await getVideoSegment(videoId, i);
+          const url = window.URL.createObjectURL(blob);
+          segmentBlobs.push(url);
+        }
 
-        // Carga los primeros segmentos
-        await loadNextSegments(
-          videoId,
-          -1,
-          setVideoUrls,
-          setCurrentSegmentIndex
-        );
+        // Crear el archivo .m3u8 dinámico
+        const m3u8Url = createM3U8File(segmentBlobs);
+        setVideoUrl(m3u8Url);
 
+        setSegmentUrls(segmentBlobs);
         setLoading(false);
       } catch (err) {
         console.error("Error loading video:", err);
@@ -120,14 +119,14 @@ export const VideoPlayer = () => {
     return <div>{error}</div>;
   }
 
-  if (!segmentUrls.length || !videoUrls.length) {
+  if (!segmentUrls.length || !videoUrl) {
     return <div>No video segments found.</div>;
   }
-  console.log("videoUrls dentro de reproductor", videoUrls);
+
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={videoUrls}
+        url={videoUrl} // Pasar la URL del archivo .m3u8
         controls={true}
         width="100%"
         height="100%"
@@ -138,10 +137,10 @@ export const VideoPlayer = () => {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 600,
+              maxBufferLength: 60,
               liveSyncDurationCount: 1,
-              maxMaxBufferLength: 600,
-              backBufferLength: 600,
+              maxMaxBufferLength: 60,
+              backBufferLength: 60,
               maxBufferHole: 0.2,
               maxStarvationDelay: 10,
               maxLoadingDelay: 5,
@@ -152,7 +151,6 @@ export const VideoPlayer = () => {
         }}
         onError={(error) => {
           console.error("ReactPlayer error:", error);
-          handleError(error);
         }}
         onProgress={(state) =>
           handleProgress(
@@ -160,7 +158,7 @@ export const VideoPlayer = () => {
             segmentUrls,
             currentSegmentIndex,
             loadNextSegments,
-            setVideoUrls,
+            setSegmentUrls,
             setCurrentSegmentIndex
           )
         }

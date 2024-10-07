@@ -219,3 +219,21 @@ Las llamadas funcionan correctamente, es un error de la API:
 - Intentar que la response de videosegment no sea un blob y reproducirla directamente
 - insvestigar si hay otro formato que no sea blob para recobir las respues en binario
 - prbar con el archivo que decargo de postman a pasarlo por el reproductor
+
+## 07/10/2024
+
+- Consigo reproducir el video creando una funcion que crea un indice m3u8 con los fragmentos:
+```
+const createM3U8File = (segmentUrls: string[]): string => {
+  const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:10\n#EXT-X-MEDIA-SEQUENCE:0\n`;
+  const segmentList = segmentUrls
+    .map((url) => `#EXTINF:10,\n${url}`)
+    .join("\n");
+  const m3u8Footer = "#EXT-X-ENDLIST";
+  const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
+  const blob = new Blob([m3u8Content], {
+    type: "application/vnd.apple.mpegurl",
+  });
+  return window.URL.createObjectURL(blob);
+};
+```
