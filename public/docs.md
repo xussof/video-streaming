@@ -236,4 +236,12 @@ const createM3U8File = (segmentUrls: string[]): string => {
   });
   return window.URL.createObjectURL(blob);
 };
-```
+``` 
+El tipo de MIME application/vnd.apple.mpegurl hace referencia a un archivo M3U8
+
+
+## PRIORIDAD CONSEGUIR VER TODOS LOS SEGMENTOS Y SERVIRLOS POCO A POCO.
+- Parece ser que estoy mezclando la logica anterior a la creacion de la lista de segmentos con indice mru8, REVISAR.
+- Segun cuantos segmentos haya en el indice, tengo que crear una variable dinamica para poderlos reproducir todos
+La lista de segmentos tiene que salir de la api de watch video, y traer los segmentos con sus propios segundos, no darle yo los segundos que quiero.
+- Solo se estan sirviendo 3 + 1 y necesito servir todos los segmentos, que en cada video pueden ser distintos y tener diferentes duraciones.

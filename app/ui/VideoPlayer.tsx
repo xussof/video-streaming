@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { getVideoSegment } from "../api/getVideoSegment";
 
+const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
 // Crear un archivo .m3u8 dinámico a partir de las URLs de los segmentos
 const createM3U8File = (segmentUrls: string[]): string => {
   const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:10\n#EXT-X-MEDIA-SEQUENCE:0\n`;
@@ -14,6 +15,7 @@ const createM3U8File = (segmentUrls: string[]): string => {
   const blob = new Blob([m3u8Content], {
     type: "application/vnd.apple.mpegurl",
   });
+  console.log("segmentlist", segmentList);
   return window.URL.createObjectURL(blob);
 };
 
@@ -26,13 +28,13 @@ const loadNextSegments = async (
 ): Promise<void> => {
   try {
     const nextSegments: string[] = [];
-    for (let i = 1; i <= 1; i++) {
+    for (let i = 1; i <= 3; i++) {
       const blob = await getVideoSegment(videoId, currentSegmentIndex + i);
       const url = window.URL.createObjectURL(blob);
       nextSegments.push(url);
     }
     setSegmentUrls((prevUrls) => [...prevUrls, ...nextSegments]);
-    setCurrentSegmentIndex(currentSegmentIndex + 3);
+    setCurrentSegmentIndex(currentSegmentIndex + 1);
   } catch (err) {
     console.error("Error loading next segments:", err);
     throw err;
@@ -65,8 +67,9 @@ const handleProgress = async (
     currentSegmentIndex < segmentUrls.length - 1
   ) {
     try {
+      //esto tiene que apuntar a la llmagada getvideosegments y el video id tiene que ser dinamico
       await loadNextSegments(
-        "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps",
+        videoId,
         currentSegmentIndex,
         setSegmentUrls,
         setCurrentSegmentIndex
@@ -87,8 +90,6 @@ export const VideoPlayer = () => {
   useEffect(() => {
     const loadVideo = async () => {
       try {
-        const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
-
         // Pre-cargar los primeros 3 segmentos y generar el archivo .m3u8
         const segmentBlobs: string[] = [];
         for (let i = 0; i < 3; i++) {
@@ -137,10 +138,10 @@ export const VideoPlayer = () => {
             hlsOptions: {
               autoStartLoad: true,
               startPosition: -1,
-              maxBufferLength: 60,
+              maxBufferLength: 15,
               liveSyncDurationCount: 1,
-              maxMaxBufferLength: 60,
-              backBufferLength: 60,
+              maxMaxBufferLength: 15,
+              backBufferLength: 15,
               maxBufferHole: 0.2,
               maxStarvationDelay: 10,
               maxLoadingDelay: 5,
