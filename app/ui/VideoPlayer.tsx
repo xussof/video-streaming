@@ -2,13 +2,15 @@
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { getVideoSegment } from "../api/getVideoSegment";
+//import { getVideoIndex } from "../api/getVideoIndex";
 
-const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
+const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps"; //Este videoId debe venir de la API getVideoIndex...
+
 // Crear un archivo .m3u8 dinámico a partir de las URLs de los segmentos
 const createM3U8File = (segmentUrls: string[]): string => {
-  const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:10\n#EXT-X-MEDIA-SEQUENCE:0\n`;
+  const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:17\n#EXT-X-MEDIA-SEQUENCE:0\n`;
   const segmentList = segmentUrls
-    .map((url) => `#EXTINF:10,\n${url}`)
+    .map((url) => `#EXTINF:17,\n${url}`)
     .join("\n");
   const m3u8Footer = "#EXT-X-ENDLIST";
   const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
@@ -16,6 +18,10 @@ const createM3U8File = (segmentUrls: string[]): string => {
     type: "application/vnd.apple.mpegurl",
   });
   console.log("segmentlist", segmentList);
+  console.log(
+    "window.URL.createObjectURL(blob)",
+    window.URL.createObjectURL(blob)
+  );
   return window.URL.createObjectURL(blob);
 };
 
@@ -27,6 +33,7 @@ const loadNextSegments = async (
   setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
 ): Promise<void> => {
   try {
+    //const videoId = await getVideoIndex(videoId);
     const nextSegments: string[] = [];
     for (let i = 1; i <= 3; i++) {
       const blob = await getVideoSegment(videoId, currentSegmentIndex + i);

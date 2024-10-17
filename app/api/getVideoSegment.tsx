@@ -32,7 +32,7 @@ export const getVideoSegment = async (
     if (blob.type && !blob.type.includes("video/")) {
       throw new Error("El tipo del blob no es válido");
     }
-
+    console.log("data Blob getVideoSegment", blob);
     return blob;
   } catch (error) {
     console.error("Error fetching video segment:", error);

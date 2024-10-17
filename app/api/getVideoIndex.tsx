@@ -28,13 +28,13 @@ export const getVideoIndex = async (videoId: string): Promise<string[]> => {
     );
 
     const data = response.data;
-
+    console.log("data", data);
     // Extrae los nombres de archivo de los segmentos
     const segmentNames = data
       .split("\n")
       .filter((line: string) => line.endsWith(".ts"))
       .map((line: string) => line.trim());
-
+    console.log("segmentNames", segmentNames);
     return segmentNames;
   } catch (error) {
     if (axios.isAxiosError(error)) {
