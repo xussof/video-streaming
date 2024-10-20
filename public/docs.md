@@ -254,3 +254,5 @@ Modifico el código para que sea mas sencillo de leer, he metido las funciones d
 Errores:
 
 - En la barra del video no aparece la duración completa, solo se ve una vez se reproducen los primeros segmentos, se para la reproducción y entonces aparece la duración completa.
+
+- Se cargan segmentos infinitamente si le damos al play o movemos la barra..

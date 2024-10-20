@@ -2,6 +2,11 @@
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { getVideoSegment } from "../api/getVideoSegment";
+import { getVideoIndex } from "../api/getVideoIndex";
+
+interface VideoIndex {
+  segments?: string[];
+}
 
 interface SegmentInfo {
   url: string;
@@ -19,25 +24,60 @@ export const VideoPlayer = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadInitialSegments = async () => {
+    const initializeVideo = async () => {
       try {
+        // Obtener el índice del video
+        const videoIndexResponse = await getVideoIndex(videoId);
+
+        // Verificar si hay segmentos disponibles
+        if (!Array.isArray(videoIndexResponse)) {
+          throw new Error("Invalid response from getVideoIndex");
+        }
+
+        const videoIndex: VideoIndex = {
+          segments: videoIndexResponse,
+        };
+
+        // Precargar los primeros segmentos
         const initialSegments: SegmentInfo[] = [];
-        for (let i = 0; i < SEGMENTS_TO_PRELOAD; i++) {
+        for (
+          let i = 0;
+          i < Math.min(SEGMENTS_TO_PRELOAD, videoIndex.segments?.length || 0);
+          i++
+        ) {
           const blob = await getVideoSegment(videoId, i);
           const url = window.URL.createObjectURL(blob);
-          initialSegments.push({ url, duration: 17 });
+          initialSegments.push({ url, duration: 17 }); // Duración fija de 17 segundos por ahora
         }
 
         setSegments(initialSegments);
         setLoading(false);
       } catch (err) {
-        console.error("Error loading initial segments:", err);
+        console.error("Error initializing video:", err);
         setError("An error occurred while loading the video.");
       }
     };
 
-    loadInitialSegments();
+    initializeVideo();
   }, []);
+
+  const createM3U8File = (): string => {
+    const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:${Math.ceil(
+      17
+    )}\n#EXT-X-MEDIA-SEQUENCE:0\n`;
+
+    const segmentList = segments
+      .map((segment) => `#EXTINF:${segment.duration},\n${segment.url}`)
+      .join("\n");
+
+    const m3u8Footer = "#EXT-X-ENDLIST";
+    const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
+
+    const blob = new Blob([m3u8Content], {
+      type: "application/vnd.apple.mpegurl",
+    });
+    return window.URL.createObjectURL(blob);
+  };
 
   const handleProgress = async (state: {
     playedSeconds: number;
@@ -65,9 +105,12 @@ export const VideoPlayer = () => {
     try {
       const nextSegments: SegmentInfo[] = [];
       for (let i = 1; i <= SEGMENTS_TO_PRELOAD; i++) {
-        const blob = await getVideoSegment(videoId, currentSegmentIndex + i);
+        const index = currentSegmentIndex + i;
+        if (index >= segments.length) break;
+
+        const blob = await getVideoSegment(videoId, index);
         const url = window.URL.createObjectURL(blob);
-        nextSegments.push({ url, duration: 17 });
+        nextSegments.push({ url, duration: segments[index].duration });
       }
 
       setSegments((prevSegments) => [...prevSegments, ...nextSegments]);
@@ -75,23 +118,6 @@ export const VideoPlayer = () => {
     } catch (err) {
       console.error("Error loading next segments:", err);
     }
-  };
-
-  // Crear un archivo .m3u8 dinámico
-  const createM3U8File = (): string => {
-    const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:17\n#EXT-X-MEDIA-SEQUENCE:0\n`;
-
-    const segmentList = segments
-      .map((segment) => `#EXTINF:${segment.duration},\n${segment.url}`)
-      .join("\n");
-
-    const m3u8Footer = "#EXT-X-ENDLIST";
-    const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
-
-    const blob = new Blob([m3u8Content], {
-      type: "application/vnd.apple.mpegurl",
-    });
-    return window.URL.createObjectURL(blob);
   };
 
   if (loading) {
@@ -109,7 +135,7 @@ export const VideoPlayer = () => {
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={createM3U8File()} // Usar el archivo .m3u8 dinámico
+        url={createM3U8File()}
         controls={true}
         width="100%"
         height="100%"
