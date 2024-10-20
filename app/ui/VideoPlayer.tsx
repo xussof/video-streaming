@@ -2,122 +2,97 @@
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { getVideoSegment } from "../api/getVideoSegment";
-//import { getVideoIndex } from "../api/getVideoIndex";
 
-const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps"; //Este videoId debe venir de la API getVideoIndex...
+interface SegmentInfo {
+  url: string;
+  duration: number;
+}
 
-// Crear un archivo .m3u8 dinámico a partir de las URLs de los segmentos
-const createM3U8File = (segmentUrls: string[]): string => {
-  const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:17\n#EXT-X-MEDIA-SEQUENCE:0\n`;
-  const segmentList = segmentUrls
-    .map((url) => `#EXTINF:17,\n${url}`)
-    .join("\n");
-  const m3u8Footer = "#EXT-X-ENDLIST";
-  const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
-  const blob = new Blob([m3u8Content], {
-    type: "application/vnd.apple.mpegurl",
-  });
-  console.log("segmentlist", segmentList);
-  console.log(
-    "window.URL.createObjectURL(blob)",
-    window.URL.createObjectURL(blob)
-  );
-  return window.URL.createObjectURL(blob);
-};
-
-// Cargar los siguientes segmentos de video
-const loadNextSegments = async (
-  videoId: string,
-  currentSegmentIndex: number,
-  setSegmentUrls: React.Dispatch<React.SetStateAction<string[]>>,
-  setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
-): Promise<void> => {
-  try {
-    //const videoId = await getVideoIndex(videoId);
-    const nextSegments: string[] = [];
-    for (let i = 1; i <= 3; i++) {
-      const blob = await getVideoSegment(videoId, currentSegmentIndex + i);
-      const url = window.URL.createObjectURL(blob);
-      nextSegments.push(url);
-    }
-    setSegmentUrls((prevUrls) => [...prevUrls, ...nextSegments]);
-    setCurrentSegmentIndex(currentSegmentIndex + 1);
-  } catch (err) {
-    console.error("Error loading next segments:", err);
-    throw err;
-  }
-};
-
-// Manejar el progreso del video
-const handleProgress = async (
-  state: { playedSeconds: number; loadedSeconds: number },
-  segmentUrls: string[],
-  currentSegmentIndex: number,
-  loadNextSegments: (
-    videoId: string,
-    currentSegmentIndex: number,
-    setSegmentUrls: React.Dispatch<React.SetStateAction<string[]>>,
-    setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
-  ) => Promise<void>,
-  setSegmentUrls: React.Dispatch<React.SetStateAction<string[]>>,
-  setCurrentSegmentIndex: React.Dispatch<React.SetStateAction<number>>
-): Promise<void> => {
-  const { playedSeconds, loadedSeconds } = state;
-  if (!segmentUrls.length || playedSeconds === 0) return;
-
-  const currentTime = playedSeconds;
-  const duration = loadedSeconds;
-
-  // Calcular cuándo cargar los siguientes segmentos, a 3/4 del video
-  if (
-    currentTime > duration * 0.75 &&
-    currentSegmentIndex < segmentUrls.length - 1
-  ) {
-    try {
-      //esto tiene que apuntar a la llmagada getvideosegments y el video id tiene que ser dinamico
-      await loadNextSegments(
-        videoId,
-        currentSegmentIndex,
-        setSegmentUrls,
-        setCurrentSegmentIndex
-      );
-    } catch (err) {
-      console.error("Error loading next segments:", err);
-    }
-  }
-};
+const videoId = "vid-pY2YksEoisvin72JDP7fZP15g7qGJpJudsF9RLtsps";
+const SEGMENTS_TO_PRELOAD = 3;
+const BUFFER_THRESHOLD = 0.75;
 
 export const VideoPlayer = () => {
-  const [segmentUrls, setSegmentUrls] = useState<string[]>([]);
+  const [segments, setSegments] = useState<SegmentInfo[]>([]);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string>("");
 
   useEffect(() => {
-    const loadVideo = async () => {
+    const loadInitialSegments = async () => {
       try {
-        // Pre-cargar los primeros 3 segmentos y generar el archivo .m3u8
-        const segmentBlobs: string[] = [];
-        for (let i = 0; i < 3; i++) {
+        const initialSegments: SegmentInfo[] = [];
+        for (let i = 0; i < SEGMENTS_TO_PRELOAD; i++) {
           const blob = await getVideoSegment(videoId, i);
           const url = window.URL.createObjectURL(blob);
-          segmentBlobs.push(url);
+          initialSegments.push({ url, duration: 17 });
         }
 
-        // Crear el archivo .m3u8 dinámico
-        const m3u8Url = createM3U8File(segmentBlobs);
-        setVideoUrl(m3u8Url);
-
-        setSegmentUrls(segmentBlobs);
+        setSegments(initialSegments);
         setLoading(false);
       } catch (err) {
-        console.error("Error loading video:", err);
+        console.error("Error loading initial segments:", err);
         setError("An error occurred while loading the video.");
       }
     };
-    loadVideo();
+
+    loadInitialSegments();
   }, []);
+
+  const handleProgress = async (state: {
+    playedSeconds: number;
+    loadedSeconds: number;
+  }) => {
+    const { playedSeconds, loadedSeconds } = state;
+    if (!segments.length || playedSeconds === 0) return;
+
+    const currentTime = playedSeconds;
+    const duration = loadedSeconds;
+
+    if (
+      currentTime > duration * BUFFER_THRESHOLD &&
+      currentSegmentIndex < segments.length - 1
+    ) {
+      try {
+        await loadNextSegments();
+      } catch (err) {
+        console.error("Error loading next segments:", err);
+      }
+    }
+  };
+
+  const loadNextSegments = async () => {
+    try {
+      const nextSegments: SegmentInfo[] = [];
+      for (let i = 1; i <= SEGMENTS_TO_PRELOAD; i++) {
+        const blob = await getVideoSegment(videoId, currentSegmentIndex + i);
+        const url = window.URL.createObjectURL(blob);
+        nextSegments.push({ url, duration: 17 });
+      }
+
+      setSegments((prevSegments) => [...prevSegments, ...nextSegments]);
+      setCurrentSegmentIndex(currentSegmentIndex + 1);
+    } catch (err) {
+      console.error("Error loading next segments:", err);
+    }
+  };
+
+  // Crear un archivo .m3u8 dinámico
+  const createM3U8File = (): string => {
+    const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:17\n#EXT-X-MEDIA-SEQUENCE:0\n`;
+
+    const segmentList = segments
+      .map((segment) => `#EXTINF:${segment.duration},\n${segment.url}`)
+      .join("\n");
+
+    const m3u8Footer = "#EXT-X-ENDLIST";
+    const m3u8Content = `${m3u8Header}${segmentList}\n${m3u8Footer}`;
+
+    const blob = new Blob([m3u8Content], {
+      type: "application/vnd.apple.mpegurl",
+    });
+    return window.URL.createObjectURL(blob);
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -127,14 +102,14 @@ export const VideoPlayer = () => {
     return <div>{error}</div>;
   }
 
-  if (!segmentUrls.length || !videoUrl) {
+  if (!segments.length) {
     return <div>No video segments found.</div>;
   }
 
   return (
     <div id="player" className="m-8 h-full">
       <ReactPlayer
-        url={videoUrl} // Pasar la URL del archivo .m3u8
+        url={createM3U8File()} // Usar el archivo .m3u8 dinámico
         controls={true}
         width="100%"
         height="100%"
@@ -160,16 +135,7 @@ export const VideoPlayer = () => {
         onError={(error) => {
           console.error("ReactPlayer error:", error);
         }}
-        onProgress={(state) =>
-          handleProgress(
-            state,
-            segmentUrls,
-            currentSegmentIndex,
-            loadNextSegments,
-            setSegmentUrls,
-            setCurrentSegmentIndex
-          )
-        }
+        onProgress={handleProgress}
       />
     </div>
   );

@@ -245,3 +245,12 @@ El tipo de MIME application/vnd.apple.mpegurl hace referencia a un archivo M3U8
 - Segun cuantos segmentos haya en el indice, tengo que crear una variable dinamica para poderlos reproducir todos
 La lista de segmentos tiene que salir de la api de watch video, y traer los segmentos con sus propios segundos, no darle yo los segundos que quiero.
 - Solo se estan sirviendo 3 + 1 y necesito servir todos los segmentos, que en cada video pueden ser distintos y tener diferentes duraciones.
+
+
+## 20/10
+
+Modifico el código para que sea mas sencillo de leer, he metido las funciones dentro del componente, creo un archivo m3u8 dinámico y se reproduce el video completo.
+
+Errores:
+
+- En la barra del video no aparece la duración completa, solo se ve una vez se reproducen los primeros segmentos, se para la reproducción y entonces aparece la duración completa.
