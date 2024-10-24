@@ -283,3 +283,5 @@ Errores:
 - Muestra un mensaje de error si ocurre un problema.
 - Si no hay segmentos, muestra un mensaje indicando que no se encontraron segmentos.
 - Finalmente, renderiza ReactPlayer con el archivo M3U8 generado.
+
+### 24/10 El video se carga a trozos, hasta que llega a 2minutos que es su duración final. No se reproduce de forma fluida. Añadir logica para que si no hay mas segmentos no intente cargar otro.
