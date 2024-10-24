@@ -5,7 +5,12 @@ import { getVideoSegment } from "../api/getVideoSegment";
 import { getVideoIndex } from "../api/getVideoIndex";
 
 interface VideoIndex {
-  segments?: string[];
+  segments?: VideoSegment[];
+}
+
+interface VideoSegment {
+  url: string;
+  duration: number;
 }
 
 interface SegmentInfo {
@@ -27,31 +32,43 @@ export const VideoPlayer = () => {
     const initializeVideo = async () => {
       try {
         // Obtener el índice del video
-        const videoIndexResponse = await getVideoIndex(videoId);
+        const videoIndexResponse: string[] = await getVideoIndex(videoId);
 
-        // Verificar si hay segmentos disponibles
-        if (!Array.isArray(videoIndexResponse)) {
+        // Verificar si hay segmentos disponibles y que tenga la estructura correcta
+        if (
+          !Array.isArray(videoIndexResponse) ||
+          videoIndexResponse.length === 0
+        ) {
           throw new Error("Invalid response from getVideoIndex");
         }
 
+        // Convertir cada URL en un objeto VideoSegment con una duración predeterminada
         const videoIndex: VideoIndex = {
-          segments: videoIndexResponse,
+          segments: videoIndexResponse.map((url) => ({
+            url,
+            duration: 10, // Duración predeterminada de 10 segundos (ajusta según sea necesario)
+          })),
         };
 
-        // Precargar los primeros segmentos
-        const initialSegments: SegmentInfo[] = [];
-        for (
-          let i = 0;
-          i < Math.min(SEGMENTS_TO_PRELOAD, videoIndex.segments?.length || 0);
-          i++
-        ) {
-          const blob = await getVideoSegment(videoId, i);
-          const url = window.URL.createObjectURL(blob);
-          initialSegments.push({ url, duration: 17 }); // Duración fija de 17 segundos por ahora
-        }
+        // Precargar los primeros segmentos usando la duración correcta
+        if (videoIndex.segments && videoIndex.segments.length) {
+          const initialSegments: SegmentInfo[] = [];
+          for (
+            let i = 0;
+            i < Math.min(SEGMENTS_TO_PRELOAD, videoIndex.segments.length);
+            i++
+          ) {
+            const blob = await getVideoSegment(videoId, i);
+            const url = window.URL.createObjectURL(blob);
+            const duration = videoIndex.segments[i].duration; // Usa la duración correcta
+            initialSegments.push({ url, duration });
+          }
 
-        setSegments(initialSegments);
-        setLoading(false);
+          setSegments(initialSegments);
+          setLoading(false);
+        } else {
+          throw new Error("Video segments are not available.");
+        }
       } catch (err) {
         console.error("Error initializing video:", err);
         setError("An error occurred while loading the video.");
@@ -63,7 +80,7 @@ export const VideoPlayer = () => {
 
   const createM3U8File = (): string => {
     const m3u8Header = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:${Math.ceil(
-      17
+      Math.max(...segments.map((s) => s.duration)) // Usa la duración máxima para TARGETDURATION
     )}\n#EXT-X-MEDIA-SEQUENCE:0\n`;
 
     const segmentList = segments
@@ -110,7 +127,8 @@ export const VideoPlayer = () => {
 
         const blob = await getVideoSegment(videoId, index);
         const url = window.URL.createObjectURL(blob);
-        nextSegments.push({ url, duration: segments[index].duration });
+        const duration = segments[index].duration; // Usa la duración correcta
+        nextSegments.push({ url, duration });
       }
 
       setSegments((prevSegments) => [...prevSegments, ...nextSegments]);
